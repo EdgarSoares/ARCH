@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FeedPageClass</class>
+ <widget class="QWidget" name="FeedPage">
+  <widget class="QWidget" name="widget" native="true">
+  <property name="geometry">
+    <rect>
+      <x>100</x>
+      <y>0</y>
+      <width>575</width>
+      <height>300</height>
+    </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Arch Feed</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,1">
+   <item>
+    <widget class="QLabel" name="FeedPageMain">
+    <property name="styleSheet">
+      <string notr="true">QLabel { color: white; font-weight: bold; }</string>
+    </property>
+     <property name="text">
+      <string>Archcoin Feed is an exclusive feature. It can only be unlocked through obtaining and staking 16000 ARCH.</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+     <property name="openExternalLinks">
+      <bool>false</bool>
+     </property>
+    </widget>
+    </item>
+   </layout>
+   </widget>
+  </widget>
+ <resources/>
+ <connections/>
+</ui>
