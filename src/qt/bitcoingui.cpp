@@ -26,6 +26,7 @@
 #include "guiutil.h"
 #include "rpcconsole.h"
 #include "wallet.h"
+#include "ui_loungepage.h"
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
@@ -76,7 +77,8 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     trayIcon(0),
     notificator(0),
     rpcConsole(0),
-    nWeight(0)
+    nWeight(0),
+    loungeInit(false)
 {
     resize(850+95, 550);
     setWindowTitle(tr("Archcoin") + " - " + tr("Wallet"));
@@ -119,12 +121,18 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
 
     signVerifyMessageDialog = new SignVerifyMessageDialog(this);
 
+    loungePage = new QWidget(this);
+    Ui::loungePage lounge;
+    lounge.setupUi(loungePage);
+
     centralStackedWidget = new QStackedWidget(this);
     centralStackedWidget->addWidget(overviewPage);
     centralStackedWidget->addWidget(transactionsPage);
     centralStackedWidget->addWidget(addressBookPage);
     centralStackedWidget->addWidget(receiveCoinsPage);
     centralStackedWidget->addWidget(sendCoinsPage);
+    centralStackedWidget->addWidget(loungePage);
+    setCentralWidget(centralStackedWidget);
 
     QWidget *centralWidget = new QWidget();
     QVBoxLayout *centralLayout = new QVBoxLayout(centralWidget);
@@ -256,6 +264,12 @@ void BitcoinGUI::createActions()
     addressBookAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
     tabGroup->addAction(addressBookAction);
 
+    loungeAction = new QAction(QIcon(":/icons/lounge"), tr("&LOUNGE"), this);
+    loungeAction->setToolTip(tr("Join the lounge and chat"));
+    loungeAction->setCheckable(true);
+    loungeAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
+    tabGroup->addAction(loungeAction);
+
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(gotoOverviewPage()));
     connect(receiveCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
@@ -266,6 +280,8 @@ void BitcoinGUI::createActions()
     connect(historyAction, SIGNAL(triggered()), this, SLOT(gotoHistoryPage()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
+    connect(loungeAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(loungeAction, SIGNAL(triggered()), this, SLOT(gotoloungePage()));
 
     quitAction = new QAction(tr("E&xit"), this);
     quitAction->setToolTip(tr("Quit application"));
@@ -315,8 +331,13 @@ void BitcoinGUI::createActions()
 
 void BitcoinGUI::createMenuBar()
 {
+#ifdef Q_OS_MAC
+    // Create a decoupled menu bar on Mac which stays even if the window is closed
     appMenuBar = new QMenuBar();
-
+#else
+    // Get the main window's menu bar on other platforms
+    appMenuBar = menuBar();
+#endif
     // Configure the menus
     QMenu *file = appMenuBar->addMenu(tr("&File"));
     file->addAction(backupWalletAction);
@@ -354,15 +375,15 @@ void BitcoinGUI::createToolBars()
     toolbar = new QToolBar(tr("Tabs toolbar"));
     toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     toolbar->setContextMenuPolicy(Qt::PreventContextMenu);
+    toolbar->setIconSize(QSize(30,30));
 
     if (fUseBlackTheme)
     {
         QWidget* header = new QWidget();
-        header->setMinimumSize(180, 10);
+        header->setMinimumSize(50, 50);
         header->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
         header->setStyleSheet("QWidget { background-color: rgb(2,34,69); background-repeat: no-repeat; background-image: url(:/images/header); background-position: top center; }");
         toolbar->addWidget(header);
-        //toolbar->setMinimumSize(170, 116);
         //toolbar->addWidget(makeToolBarSpacer());
     }
 
@@ -371,6 +392,7 @@ void BitcoinGUI::createToolBars()
     toolbar->addAction(sendCoinsAction);
     toolbar->addAction(historyAction);
     toolbar->addAction(addressBookAction);
+    toolbar->addAction(loungeAction);
 
     toolbar->addWidget(makeToolBarSpacer());
 
@@ -788,6 +810,19 @@ void BitcoinGUI::gotoSendCoinsPage()
     disconnect(exportAction, SIGNAL(triggered()), 0, 0);
 }
 
+void BitcoinGUI::gotoloungePage()
+{
+    loungeAction->setChecked(true);
+    if (!loungeInit)
+    {
+        loungePage->findChild<QWebView *>("webView")->load(QUrl("https://kiwiirc.com/client/irc.freenode.net/#archcoin"));
+        loungeInit = true;
+    }
+    centralStackedWidget->setCurrentWidget(loungePage);
+    exportAction->setEnabled(false);
+    disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+}
+
 void BitcoinGUI::gotoSignMessageTab(QString addr)
 {
     // call show() in showTab_SM()
@@ -983,6 +1018,10 @@ void BitcoinGUI::updateStakingIcon()
         uint64_t nWeight = this->nWeight;
         uint64_t nNetworkWeight = GetPoSKernelPS();
         unsigned nEstimateTime = GetTargetSpacing(nBestHeight) * nNetworkWeight / nWeight;
+        float nNetworkweightF = nNetworkWeight/COIN;
+        nNetworkWeight /= COIN;
+        float nInterestRate;
+        nInterestRate = (3 + (17*(nNetworkweightF / 30000000)));
 
         QString text;
         if (nEstimateTime < 60)
@@ -1001,24 +1040,26 @@ void BitcoinGUI::updateStakingIcon()
         {
             text = tr("%n day(s)", "", nEstimateTime/(60*60*24));
         }
-
-        nWeight /= COIN;
-        nNetworkWeight /= COIN;
-
         labelStakingIcon->setPixmap(QIcon(fUseBlackTheme ? ":/icons/black/staking_on" : ":/icons/staking_on").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
-        labelStakingIcon->setToolTip(tr("Staking.<br>Your weight is %1<br>Network weight is %2<br>Expected time to earn reward is %3").arg(nWeight).arg(nNetworkWeight).arg(text));
+        labelStakingIcon->setToolTip(tr("Staking.<br>Current interest rate is: %1%<br>Network weight is: %2<br>Expected time to earn reward is: %3").arg(nInterestRate).arg(nNetworkWeight).arg(text));
     }
     else
     {
+        uint64_t nNetworkWeight = GetPoSKernelPS();
+        float nNetworkweightF = nNetworkWeight/COIN;
+        nNetworkWeight /= COIN;
+        float nInterestRate;
+        nInterestRate = (3 + (17*(nNetworkweightF / 30000000)));
+
         labelStakingIcon->setPixmap(QIcon(fUseBlackTheme ? ":/icons/black/staking_off" : ":/icons/staking_off").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
         if (pwalletMain && pwalletMain->IsLocked())
-            labelStakingIcon->setToolTip(tr("Not staking because wallet is locked"));
+            labelStakingIcon->setToolTip(tr("Not staking because wallet is locked. <br> Current interest rate is: %1%<br>Network weight is: %2").arg(nInterestRate).arg(nNetworkWeight));
         else if (vNodes.empty())
             labelStakingIcon->setToolTip(tr("Not staking because wallet is offline"));
         else if (IsInitialBlockDownload())
             labelStakingIcon->setToolTip(tr("Not staking because wallet is syncing"));
         else if (!nWeight)
-            labelStakingIcon->setToolTip(tr("Not staking because you don't have mature coins"));
+            labelStakingIcon->setToolTip(tr("Not staking because you don't have mature coins. <br> Current interest rate is: %1%<br>Network weight is: %2").arg(nInterestRate).arg(nNetworkWeight));
         else
             labelStakingIcon->setToolTip(tr("Not staking"));
     }

@@ -5,12 +5,12 @@ INCLUDEPATH += src src/json src/qt
 DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
 CONFIG += no_include_pwd
 CONFIG += thread
-QT += core gui network
-lessThan(QT_MAJOR_VERSION, 5): CONFIG += static
-QMAKE_CXXFLAGS = -fpermissive
-
+!win32{
+CONFIG += static
+}
+QT += network webkit
 greaterThan(QT_MAJOR_VERSION, 4) {
-    QT += widgets
+    QT += webkitwidgets
     DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0
 }
 
@@ -302,6 +302,11 @@ FORMS += \
     src/qt/forms/signverifymessagedialog.ui \
     src/qt/forms/aboutdialog.ui \
     src/qt/forms/editaddressdialog.ui \
+    src/qt/forms/chatwindow.ui \
+    src/qt/forms/feedpage.ui \
+    src/qt/forms/hqpage.ui \
+    src/qt/forms/loungepage.ui \
+    src/qt/forms/ceopage.ui \
     src/qt/forms/transactiondescdialog.ui \
     src/qt/forms/overviewpage.ui \
     src/qt/forms/sendcoinsentry.ui \

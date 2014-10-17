@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QSystemTrayIcon>
+#include <QWebFrame>
 
 #include <stdint.h>
 
@@ -69,6 +70,7 @@ private:
     AddressBookPage *receiveCoinsPage;
     SendCoinsDialog *sendCoinsPage;
     SignVerifyMessageDialog *signVerifyMessageDialog;
+    QWidget *loungePage;
 
     QLabel *labelEncryptionIcon;
     QLabel *labelStakingIcon;
@@ -83,6 +85,7 @@ private:
     QAction *quitAction;
     QAction *sendCoinsAction;
     QAction *addressBookAction;
+    QAction *loungeAction;
     QAction *signMessageAction;
     QAction *verifyMessageAction;
     QAction *aboutAction;
@@ -106,6 +109,9 @@ private:
     QMovie *syncIconMovie;
 
     uint64_t nWeight;
+
+    bool loungeInit;
+    QWebFrame * loungeFrame;
 
     /** Create the main UI actions. */
     void createActions();
@@ -151,6 +157,7 @@ private slots:
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */
     void gotoSendCoinsPage();
+    void gotoloungePage();
 
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */

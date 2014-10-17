@@ -13,7 +13,7 @@
 
 static const int CLIENT_VERSION =
                            1000000 * CLIENT_VERSION_MAJOR
-                         +   00000 * CLIENT_VERSION_MINOR
+                         +   10000 * CLIENT_VERSION_MINOR
                          +     000 * CLIENT_VERSION_REVISION
                          +       0 * CLIENT_VERSION_BUILD;
 
