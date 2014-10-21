@@ -1009,7 +1009,7 @@ int64_t GetProofOfStakeReward(int nHeight, int64_t nCoinAge, int64_t nFees)
 {
     int64_t nSubsidy;
     uint64_t nNetworkWeight_ = GetPoSKernelPS();
-    if(nNetworkWeight_ == 0 || nHeight < 5000)
+    if(nNetworkWeight_ == 0 || nHeight < 20000)
     {
         nSubsidy = nCoinAge * (3 * CENT) * 33 / (365 * 33 + 8);
     }
