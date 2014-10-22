@@ -5,4 +5,4 @@ The Archcoin Profit Network is a revolutionary method designed to build a highly
 
 http://archcoin.co
 
-https://bitcointalk.org/index.php?topic=754055.0
+https://bitcointalk.org/index.php?topic=831777
