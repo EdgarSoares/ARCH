@@ -10,7 +10,7 @@ CONFIG += static
 }
 QT += network webkit
 greaterThan(QT_MAJOR_VERSION, 4) {
-    QT += webkitwidgets
+    QT += widgets webkitwidgets
     DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0
 }
 
