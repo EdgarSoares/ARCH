@@ -1,7 +1,7 @@
 Archcoin
 ========
 
-The Archcoin Profit Network is a revolutionary method designed to build a highly efficient business model on the blockchain that guarantees profit distribution from visionary product sales, services and enterprising crypto investments.
+The Archcoin Network is a revolutionary method designed to build a highly efficient business model on the blockchain that guarantees profit distribution from visionary product sales, services and enterprising crypto investments.
 
 Algorithm: Scrypt [100% Proof of Stake]
 
