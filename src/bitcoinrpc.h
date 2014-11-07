@@ -130,6 +130,7 @@ extern double GetDifficulty(const CBlockIndex* blockindex = NULL);
 
 extern double GetPoWMHashPS();
 extern double GetPoSKernelPS();
+extern double GetPoSKernelPS(CBlockIndex* pindexPrev);
 
 extern std::string HelpRequiringPassphrase();
 extern void EnsureWalletIsUnlocked();

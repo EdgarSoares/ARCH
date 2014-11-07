@@ -62,7 +62,7 @@
 
 extern CWallet* pwalletMain;
 extern int64_t nLastCoinStakeSearchInterval;
-double GetPoSKernelPS();
+extern double GetPoSKernelPS();
 
 BitcoinGUI::BitcoinGUI(QWidget *parent):
     QMainWindow(parent),
@@ -1016,12 +1016,12 @@ void BitcoinGUI::updateStakingIcon()
     if (nLastCoinStakeSearchInterval && nWeight)
     {
         uint64_t nWeight = this->nWeight;
-        uint64_t nNetworkWeight = GetPoSKernelPS();
+        int64_t nNetworkWeight = GetPoSKernelPS();
         unsigned nEstimateTime = GetTargetSpacing(nBestHeight) * nNetworkWeight / nWeight;
         float nNetworkweightF = nNetworkWeight/COIN;
         nNetworkWeight /= COIN;
         float nInterestRate;
-        nInterestRate = (3 + (17*(nNetworkweightF / 30000000)));
+        nInterestRate = (3 + (17*(nNetworkweightF / 15000000)));
 
         QString text;
         if (nEstimateTime < 60)
@@ -1045,11 +1045,11 @@ void BitcoinGUI::updateStakingIcon()
     }
     else
     {
-        uint64_t nNetworkWeight = GetPoSKernelPS();
+        int64_t nNetworkWeight = GetPoSKernelPS();
         float nNetworkweightF = nNetworkWeight/COIN;
         nNetworkWeight /= COIN;
         float nInterestRate;
-        nInterestRate = (3 + (17*(nNetworkweightF / 30000000)));
+        nInterestRate = (3 + (17*(nNetworkweightF / 15000000)));
 
         labelStakingIcon->setPixmap(QIcon(fUseBlackTheme ? ":/icons/black/staking_off" : ":/icons/staking_off").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
         if (pwalletMain && pwalletMain->IsLocked())
