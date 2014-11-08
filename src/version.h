@@ -13,7 +13,7 @@
 
 static const int CLIENT_VERSION =
                            1000000 * CLIENT_VERSION_MAJOR
-                         +   10000 * CLIENT_VERSION_MINOR
+                         +   20000 * CLIENT_VERSION_MINOR
                          +     000 * CLIENT_VERSION_REVISION
                          +       0 * CLIENT_VERSION_BUILD;
 
@@ -30,7 +30,7 @@ static const int DATABASE_VERSION = 70000;
 // network protocol versioning
 //
 
-static const int PROTOCOL_VERSION = 70000;
+static const int PROTOCOL_VERSION = 70001;
 
 // intial proto version, to be increased after version/verack negotiation
 static const int INIT_PROTO_VERSION = 209;
