@@ -1,6 +1,6 @@
 TEMPLATE = app
 TARGET = archcoin-qt
-VERSION = 1.2.0
+VERSION = 1.3.0
 INCLUDEPATH += src src/json src/qt
 DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
 CONFIG += no_include_pwd
@@ -23,6 +23,25 @@ greaterThan(QT_MAJOR_VERSION, 4) {
 # Dependency library locations can be customized with:
 #    BOOST_INCLUDE_PATH, BOOST_LIB_PATH, BDB_INCLUDE_PATH,
 #    BDB_LIB_PATH, OPENSSL_INCLUDE_PATH and OPENSSL_LIB_PATH respectively
+
+# winbuild dependencies
+win32 {
+  lessThan(QT_VERSION, 5.4) {
+  BOOST_LIB_SUFFIX=-mgw48-mt-s-1_55
+  } else {
+  BOOST_LIB_SUFFIX=-mgw49-mt-s-1_55
+  }
+BOOST_INCLUDE_PATH=C:/deps/boost_1_55_0
+BOOST_LIB_PATH=C:/deps/boost_1_55_0/stage/lib
+BDB_INCLUDE_PATH=C:/deps/db-4.8.30.NC/build_unix
+BDB_LIB_PATH=C:/deps/db-4.8.30.NC/build_unix
+OPENSSL_INCLUDE_PATH=C:/deps/openssl-1.0.1i/include
+OPENSSL_LIB_PATH=C:/deps/openssl-1.0.1i
+MINIUPNPC_INCLUDE_PATH=C:/deps
+MINIUPNPC_LIB_PATH=C:/deps/miniupnpc
+QRENCODE_INCLUDE_PATH=C:/deps/qrencode-3.4.4
+QRENCODE_LIB_PATH=C:/deps/qrencode-3.4.4/.libs
+}
 
 OBJECTS_DIR = build
 MOC_DIR = build
@@ -205,6 +224,7 @@ HEADERS += src/qt/bitcoingui.h \
     src/qt/walletmodel.h \
     src/bitcoinrpc.h \
     src/qt/overviewpage.h \
+    src/qt/lobbypage.h \
     src/qt/csvmodelwriter.h \
     src/crypter.h \
     src/qt/sendcoinsentry.h \
@@ -221,7 +241,8 @@ HEADERS += src/qt/bitcoingui.h \
     src/version.h \
     src/netbase.h \
     src/clientversion.h \
-    src/threadsafety.h
+    src/threadsafety.h \
+    src/qt/webview.h
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/qt/transactiontablemodel.cpp \
@@ -273,6 +294,7 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/rpcblockchain.cpp \
     src/rpcrawtransaction.cpp \
     src/qt/overviewpage.cpp \
+    src/qt/lobbypage.cpp \
     src/qt/csvmodelwriter.cpp \
     src/crypter.cpp \
     src/qt/sendcoinsentry.cpp \
@@ -290,7 +312,8 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/scrypt-x86.S \
     src/scrypt-x86_64.S \
     src/scrypt.cpp \
-    src/pbkdf2.cpp
+    src/pbkdf2.cpp \
+    src/qt/webview.cpp
 
 RESOURCES += \
     src/qt/bitcoin.qrc
@@ -302,11 +325,8 @@ FORMS += \
     src/qt/forms/signverifymessagedialog.ui \
     src/qt/forms/aboutdialog.ui \
     src/qt/forms/editaddressdialog.ui \
-    src/qt/forms/chatwindow.ui \
-    src/qt/forms/feedpage.ui \
-    src/qt/forms/hqpage.ui \
-    src/qt/forms/loungepage.ui \
-    src/qt/forms/ceopage.ui \
+    src/qt/forms/lobbypage.ui \
+    src/qt/forms/loungechatpage.ui \
     src/qt/forms/transactiondescdialog.ui \
     src/qt/forms/overviewpage.ui \
     src/qt/forms/sendcoinsentry.ui \

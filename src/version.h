@@ -13,9 +13,9 @@
 
 static const int CLIENT_VERSION =
                            1000000 * CLIENT_VERSION_MAJOR
-                         +   20000 * CLIENT_VERSION_MINOR
-                         +     000 * CLIENT_VERSION_REVISION
-                         +       0 * CLIENT_VERSION_BUILD;
+                         +   10000 * CLIENT_VERSION_MINOR
+                         +     100 * CLIENT_VERSION_REVISION
+                         +       1 * CLIENT_VERSION_BUILD;
 
 extern const std::string CLIENT_NAME;
 extern const std::string CLIENT_BUILD;
@@ -36,7 +36,7 @@ static const int PROTOCOL_VERSION = 70001;
 static const int INIT_PROTO_VERSION = 209;
 
 // disconnect from peers older than this proto version
-static const int MIN_PEER_PROTO_VERSION = 70000;
+static const int MIN_PEER_PROTO_VERSION = 70001;
 
 // nTime field added to CAddress, starting with this version;
 // if possible, avoid requesting addresses nodes older than this

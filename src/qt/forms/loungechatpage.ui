@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>loungePage</class>
- <widget class="QWidget" name="loungePage">
+ <class>loungeChatPage</class>
+ <widget class="QWidget" name="loungeChatPage">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -9,6 +9,9 @@
     <width>811</width>
     <height>381</height>
    </rect>
+  </property>
+  <property name="contextMenuPolicy">
+   <enum>Qt::NoContextMenu</enum>
   </property>
   <property name="windowTitle">
    <string>Form</string>
@@ -20,8 +23,26 @@
    <string notr="true"/>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item>
     <widget class="QWebView" name="webView">
+     <property name="contextMenuPolicy">
+      <enum>Qt::NoContextMenu</enum>
+     </property>
      <property name="url">
       <url>
        <string>about:blank</string>

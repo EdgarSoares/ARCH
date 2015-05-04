@@ -12,6 +12,7 @@ class ClientModel;
 class WalletModel;
 class TransactionView;
 class OverviewPage;
+class LobbyPage;
 class AddressBookPage;
 class SendCoinsDialog;
 class SignVerifyMessageDialog;
@@ -65,12 +66,13 @@ private:
     QStackedWidget *centralStackedWidget;
 
     OverviewPage *overviewPage;
+    LobbyPage *lobbyPage;
     QWidget *transactionsPage;
     AddressBookPage *addressBookPage;
     AddressBookPage *receiveCoinsPage;
     SendCoinsDialog *sendCoinsPage;
     SignVerifyMessageDialog *signVerifyMessageDialog;
-    QWidget *loungePage;
+    QWidget *loungeChatPage;
 
     QLabel *labelEncryptionIcon;
     QLabel *labelStakingIcon;
@@ -85,7 +87,8 @@ private:
     QAction *quitAction;
     QAction *sendCoinsAction;
     QAction *addressBookAction;
-    QAction *loungeAction;
+    QAction *lobbyAction;
+    QAction *loungeChatAction;
     QAction *signMessageAction;
     QAction *verifyMessageAction;
     QAction *aboutAction;
@@ -107,11 +110,11 @@ private:
     RPCConsole *rpcConsole;
 
     QMovie *syncIconMovie;
+    QTimer *tabTimer;
 
     uint64_t nWeight;
 
-    bool loungeInit;
-    QWebFrame * loungeFrame;
+    bool loungeChatInit;
 
     /** Create the main UI actions. */
     void createActions();
@@ -157,8 +160,10 @@ private slots:
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */
     void gotoSendCoinsPage();
-    void gotoloungePage();
 
+    //ARCH tabs
+    void gotoLobbyPage();
+    void gotoloungeChatPage();
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");

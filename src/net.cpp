@@ -23,7 +23,7 @@
 using namespace std;
 using namespace boost;
 
-static const int MAX_OUTBOUND_CONNECTIONS = 100;
+static const int MAX_OUTBOUND_CONNECTIONS = 20;
 
 void ThreadMessageHandler2(void* parg);
 void ThreadSocketHandler2(void* parg);
@@ -1232,6 +1232,7 @@ void MapPort()
 // The first name is used as information source for addrman.
 // The second name should resolve to a list of seed addresses.
 static const char *strDNSSeed[][2] = {
+    {"archcoinseed", "supernode.archcoin.co"},
 };
 
 void ThreadDNSAddressSeed(void* parg)
