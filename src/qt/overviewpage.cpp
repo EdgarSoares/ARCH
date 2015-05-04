@@ -13,7 +13,7 @@
 #include <QPainter>
 
 #define DECORATION_SIZE 64
-#define NUM_ITEMS 6
+#define NUM_ITEMS 3
 
 class TxViewDelegate : public QAbstractItemDelegate
 {
@@ -50,7 +50,7 @@ public:
             foreground = qvariant_cast<QColor>(value);
         }
 
-        painter->setPen(fUseBlackTheme ? QColor(255, 255, 255) : foreground);
+        painter->setPen(fUseBlackTheme ? QColor(13,61,112) : foreground);
         painter->drawText(addressRect, Qt::AlignLeft|Qt::AlignVCenter, address);
 
         if(amount < 0)
@@ -65,7 +65,7 @@ public:
         {
             foreground = option.palette.color(QPalette::Text);
         }
-        painter->setPen(fUseBlackTheme ? QColor(255, 255, 255) : foreground);
+        painter->setPen(fUseBlackTheme ? QColor(2,34,69) : foreground);
         QString amountText = BitcoinUnits::formatWithUnit(unit, amount, true);
         if(!confirmed)
         {
@@ -73,7 +73,7 @@ public:
         }
         painter->drawText(amountRect, Qt::AlignRight|Qt::AlignVCenter, amountText);
 
-        painter->setPen(fUseBlackTheme ? QColor(96, 101, 110) : option.palette.color(QPalette::Text));
+        painter->setPen(fUseBlackTheme ? QColor(13,61,112) : option.palette.color(QPalette::Text));
         painter->drawText(amountRect, Qt::AlignLeft|Qt::AlignVCenter, GUIUtil::dateTimeStr(date));
 
         painter->restore();
@@ -100,6 +100,8 @@ OverviewPage::OverviewPage(QWidget *parent) :
     filter(0)
 {
     ui->setupUi(this);
+    ui->stats->load(QUrl("http://www.archcoin.co/wlt/dashboard/index.html"));
+    ui->value->load(QUrl("http://www.archcoin.co/wlt/dashboard/chart.html"));
 
     // Recent transactions
     ui->listTransactions->setItemDelegate(txdelegate);
@@ -118,7 +120,7 @@ OverviewPage::OverviewPage(QWidget *parent) :
 
     if (fUseBlackTheme)
     {
-        const char* whiteLabelQSS = "QLabel { color: rgb(255,255,255); }";
+        const char* whiteLabelQSS = "QLabel { color: rgb(2,34,69); }";
         ui->labelBalance->setStyleSheet(whiteLabelQSS);
         ui->labelStake->setStyleSheet(whiteLabelQSS);
         ui->labelUnconfirmed->setStyleSheet(whiteLabelQSS);

@@ -19,6 +19,7 @@
 #include "addresstablemodel.h"
 #include "transactionview.h"
 #include "overviewpage.h"
+#include "lobbypage.h"
 #include "bitcoinunits.h"
 #include "guiconstants.h"
 #include "askpassphrasedialog.h"
@@ -26,13 +27,16 @@
 #include "guiutil.h"
 #include "rpcconsole.h"
 #include "wallet.h"
-#include "ui_loungepage.h"
+#include "webview.h"
+#include "ui_lobbypage.h"
+#include "ui_loungechatpage.h"
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
 #endif
 
 #include <QApplication>
+#include <QNetworkRequest>
 #include <QMainWindow>
 #include <QMenuBar>
 #include <QMenu>
@@ -78,10 +82,11 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     notificator(0),
     rpcConsole(0),
     nWeight(0),
-    loungeInit(false)
+    loungeChatInit(false)
 {
-    resize(850+95, 550);
-    setWindowTitle(tr("Archcoin") + " - " + tr("Wallet"));
+    resize(1200, 700);
+    showMaximized();
+    setWindowTitle(tr("ARCH") + " - " + tr("Wallet"));
 #ifndef Q_OS_MAC
     qApp->setWindowIcon(QIcon(":icons/bitcoin"));
     setWindowIcon(QIcon(":icons/bitcoin"));
@@ -121,9 +126,12 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
 
     signVerifyMessageDialog = new SignVerifyMessageDialog(this);
 
-    loungePage = new QWidget(this);
-    Ui::loungePage lounge;
-    lounge.setupUi(loungePage);
+    // custom tabs
+    lobbyPage = new LobbyPage();
+
+    loungeChatPage = new QWidget(this);
+    Ui::loungeChatPage loungechat;
+    loungechat.setupUi(loungeChatPage);
 
     centralStackedWidget = new QStackedWidget(this);
     centralStackedWidget->addWidget(overviewPage);
@@ -131,20 +139,14 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     centralStackedWidget->addWidget(addressBookPage);
     centralStackedWidget->addWidget(receiveCoinsPage);
     centralStackedWidget->addWidget(sendCoinsPage);
-    centralStackedWidget->addWidget(loungePage);
+    centralStackedWidget->addWidget(lobbyPage);
+    centralStackedWidget->addWidget(loungeChatPage);
+
     setCentralWidget(centralStackedWidget);
-
-    QWidget *centralWidget = new QWidget();
-    QVBoxLayout *centralLayout = new QVBoxLayout(centralWidget);
-#ifndef Q_OS_MAC
-    centralLayout->addWidget(appMenuBar);
-#endif
-    centralLayout->addWidget(centralStackedWidget);
-
-    setCentralWidget(centralWidget);
 
     // Create status bar
     statusBar();
+    statusBar()->setStyleSheet("QStatusBar::item { border: 0px solid black; }");
 
     // Status bar notification icons
     QWidget *frameBlocks = new QWidget();
@@ -152,7 +154,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     frameBlocks->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     frameBlocks->setStyleSheet("QWidget { background: none; margin-bottom: 5px; }");
     QHBoxLayout *frameBlocksLayout = new QHBoxLayout(frameBlocks);
-    frameBlocksLayout->setContentsMargins(3,0,3,0);
+    frameBlocksLayout->setContentsMargins(8,0,3,0);
     frameBlocksLayout->setSpacing(3);
     frameBlocksLayout->setAlignment(Qt::AlignHCenter);
     labelEncryptionIcon = new QLabel();
@@ -218,6 +220,9 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     // Clicking on "Sign Message" in the receive coins page sends you to the sign message tab
     connect(receiveCoinsPage, SIGNAL(signMessage(QString)), this, SLOT(gotoSignMessageTab(QString)));
 
+    tabTimer = new QTimer(this);
+    connect(tabTimer, SIGNAL(timeout()), this, SLOT(showTabs()));
+    tabTimer->start(30000);
     gotoOverviewPage();
 }
 
@@ -234,41 +239,47 @@ void BitcoinGUI::createActions()
 {
     QActionGroup *tabGroup = new QActionGroup(this);
 
-    overviewAction = new QAction(QIcon(":/icons/overview"), tr("&DASHBOARD"), this);
+    overviewAction = new QAction(QIcon(":/icons/overview"), tr("&Dashboard"), this);
     overviewAction->setToolTip(tr("Show general overview of wallet"));
     overviewAction->setCheckable(true);
     overviewAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_1));
     tabGroup->addAction(overviewAction);
 
-    receiveCoinsAction = new QAction(QIcon(":/icons/receiving_addresses"), tr("&RECEIVE"), this);
+    receiveCoinsAction = new QAction(QIcon(":/icons/receiving_addresses"), tr("&Recieve"), this);
     receiveCoinsAction->setToolTip(tr("Show the list of addresses for receiving payments"));
     receiveCoinsAction->setCheckable(true);
     receiveCoinsAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_2));
     tabGroup->addAction(receiveCoinsAction);
 
-    sendCoinsAction = new QAction(QIcon(":/icons/send"), tr("&SEND"), this);
+    sendCoinsAction = new QAction(QIcon(":/icons/send"), tr("&Send"), this);
     sendCoinsAction->setToolTip(tr("Send coins to a Archcoin address"));
     sendCoinsAction->setCheckable(true);
     sendCoinsAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_3));
     tabGroup->addAction(sendCoinsAction);
 
-    historyAction = new QAction(QIcon(":/icons/history"), tr("&TRANSACTIONS"), this);
+    historyAction = new QAction(QIcon(":/icons/history"), tr("&Transactions"), this);
     historyAction->setToolTip(tr("Browse transaction history"));
     historyAction->setCheckable(true);
     historyAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_4));
     tabGroup->addAction(historyAction);
 
-    addressBookAction = new QAction(QIcon(":/icons/address-book"), tr("&ADDRESS BOOK"), this);
+    addressBookAction = new QAction(QIcon(":/icons/address-book"), tr("&Address Book"), this);
     addressBookAction->setToolTip(tr("Edit the list of stored addresses and labels"));
     addressBookAction->setCheckable(true);
     addressBookAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
     tabGroup->addAction(addressBookAction);
 
-    loungeAction = new QAction(QIcon(":/icons/lounge"), tr("&LOUNGE"), this);
-    loungeAction->setToolTip(tr("Join the lounge and chat"));
-    loungeAction->setCheckable(true);
-    loungeAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
-    tabGroup->addAction(loungeAction);
+    lobbyAction = new QAction(QIcon(":/icons/lobby"), tr("&Arch Lobby"), this);
+    lobbyAction->setToolTip(tr("Info and support"));
+    lobbyAction->setCheckable(true);
+    lobbyAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
+    tabGroup->addAction(lobbyAction);
+
+    loungeChatAction = new QAction(QIcon(":/icons/chat"), tr("&Arch Lounge"), this);
+    loungeChatAction->setToolTip(tr("Lounge chat"));
+    loungeChatAction->setCheckable(true);
+    loungeChatAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_0));
+    tabGroup->addAction(loungeChatAction);
 
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(gotoOverviewPage()));
@@ -280,8 +291,10 @@ void BitcoinGUI::createActions()
     connect(historyAction, SIGNAL(triggered()), this, SLOT(gotoHistoryPage()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
-    connect(loungeAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
-    connect(loungeAction, SIGNAL(triggered()), this, SLOT(gotoloungePage()));
+    connect(lobbyAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(lobbyAction, SIGNAL(triggered()), this, SLOT(gotoLobbyPage()));
+    connect(loungeChatAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(loungeChatAction, SIGNAL(triggered()), this, SLOT(gotoloungeChatPage()));
 
     quitAction = new QAction(tr("E&xit"), this);
     quitAction->setToolTip(tr("Quit application"));
@@ -375,16 +388,21 @@ void BitcoinGUI::createToolBars()
     toolbar = new QToolBar(tr("Tabs toolbar"));
     toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     toolbar->setContextMenuPolicy(Qt::PreventContextMenu);
-    toolbar->setIconSize(QSize(30,30));
+    toolbar->setIconSize(QSize(50,32));
 
     if (fUseBlackTheme)
     {
         QWidget* header = new QWidget();
-        header->setMinimumSize(50, 50);
+        QWidget* spacer = new QWidget();
+        spacer->setStyleSheet("QWidget { background: rgb(2,34,69); }");
+        spacer->setMaximumHeight(15);
+        spacer->setMinimumHeight(15);
+        toolbar->addWidget(spacer);
+        header->setMinimumSize(60, 60);
         header->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
         header->setStyleSheet("QWidget { background-color: rgb(2,34,69); background-repeat: no-repeat; background-image: url(:/images/header); background-position: top center; }");
         toolbar->addWidget(header);
-        //toolbar->addWidget(makeToolBarSpacer());
+
     }
 
     toolbar->addAction(overviewAction);
@@ -392,8 +410,8 @@ void BitcoinGUI::createToolBars()
     toolbar->addAction(sendCoinsAction);
     toolbar->addAction(historyAction);
     toolbar->addAction(addressBookAction);
-    toolbar->addAction(loungeAction);
-
+    toolbar->addAction(lobbyAction);
+    toolbar->addAction(loungeChatAction);
     toolbar->addWidget(makeToolBarSpacer());
 
     toolbar->setOrientation(Qt::Vertical);
@@ -401,14 +419,8 @@ void BitcoinGUI::createToolBars()
 
     addToolBar(Qt::LeftToolBarArea, toolbar);
 
-    int w = 0;
-
     foreach(QAction *action, toolbar->actions()) {
-        w = std::max(w, toolbar->widgetForAction(action)->width());
-    }
-
-    foreach(QAction *action, toolbar->actions()) {
-        toolbar->widgetForAction(action)->setFixedWidth(w);
+        toolbar->widgetForAction(action)->setFixedWidth(180);
     }
 }
 
@@ -467,6 +479,7 @@ void BitcoinGUI::setWalletModel(WalletModel *walletModel)
         receiveCoinsPage->setModel(walletModel->getAddressTableModel());
         sendCoinsPage->setModel(walletModel);
         signVerifyMessageDialog->setModel(walletModel);
+        lobbyPage->setModel(walletModel);
 
         setEncryptionStatus(walletModel->getEncryptionStatus());
         connect(walletModel, SIGNAL(encryptionStatusChanged(int)), this, SLOT(setEncryptionStatus(int)));
@@ -810,15 +823,24 @@ void BitcoinGUI::gotoSendCoinsPage()
     disconnect(exportAction, SIGNAL(triggered()), 0, 0);
 }
 
-void BitcoinGUI::gotoloungePage()
+void BitcoinGUI::gotoLobbyPage()
 {
-    loungeAction->setChecked(true);
-    if (!loungeInit)
+    lobbyAction->setChecked(true);
+    centralStackedWidget->setCurrentWidget(lobbyPage);
+
+    exportAction->setEnabled(false);
+    disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+}
+
+void BitcoinGUI::gotoloungeChatPage()
+{
+    loungeChatAction->setChecked(true);
+    if (!loungeChatInit)
     {
-        loungePage->findChild<QWebView *>("webView")->load(QUrl("https://kiwiirc.com/client/irc.freenode.net/#archcoin"));
-        loungeInit = true;
+        loungeChatPage->findChild<QWebView *>("webView")->load(QUrl("https://archcoin.co/wlt/lounge/index.htm"));
+        loungeChatInit = true;
     }
-    centralStackedWidget->setCurrentWidget(loungePage);
+    centralStackedWidget->setCurrentWidget(loungeChatPage);
     exportAction->setEnabled(false);
     disconnect(exportAction, SIGNAL(triggered()), 0, 0);
 }
